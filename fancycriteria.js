@@ -1,6 +1,6 @@
 (function () {
     var NAME    = "FancyCriteria",
-        VERSION = "0.0.1",
+        VERSION = "0.0.2",
         logged  = false;
 
     function forEach( arr, fn ) {
@@ -311,35 +311,43 @@
     FancyCriteria.api.name    = NAME;
 
 
-    FancyCriteria.LIKE         = "like";
-    FancyCriteria.EQUALS       = "eq";
-    FancyCriteria.LOWER_THAN   = "lt";
-    FancyCriteria.GREATER_THAN = "gt";
-    FancyCriteria.BETWEEN      = "bt";
-    FancyCriteria.NOT          = "not";
+    FancyCriteria.LIKE                = "like";
+    FancyCriteria.EQUALS              = "eq";
+    FancyCriteria.LOWER_THAN          = "lt";
+    FancyCriteria.LOWER_THAN_EQUALS   = "lte";
+    FancyCriteria.GREATER_THAN        = "gt";
+    FancyCriteria.GREATER_THAN_EQUALS = "gte";
+    FancyCriteria.BETWEEN             = "bt";
+    FancyCriteria.NOT                 = "not";
 
     FancyCriteria.conditions = {};
 
-    FancyCriteria.conditions[ FancyCriteria.LIKE ]       = function ( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.LIKE ]                = function ( objectValue, conditionValue ) {
         if ( typeof objectValue !== "null" && typeof objectValue !== "undefined" ) {
             return objectValue.toString().indexOf( conditionValue ) >= 0;
         } else {
             return false;
         }
     };
-    FancyCriteria.conditions[ FancyCriteria.EQUALS ]     = function ( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.EQUALS ]              = function ( objectValue, conditionValue ) {
         return objectValue === conditionValue;
     };
-    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN ] = function ( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN ]          = function ( objectValue, conditionValue ) {
         return objectValue < conditionValue;
     };
-    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN ] = function ( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN_EQUALS ]   = function ( objectValue, conditionValue ) {
+        return objectValue <= conditionValue;
+    };
+    FancyCriteria.conditions[ FancyCriteria.GREATER_THAN ]        = function ( objectValue, conditionValue ) {
         return objectValue > conditionValue;
     };
-    FancyCriteria.conditions[ FancyCriteria.BETWEEN ]    = function ( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.GREATER_THAN_EQUALS ] = function ( objectValue, conditionValue ) {
+        return objectValue >= conditionValue;
+    };
+    FancyCriteria.conditions[ FancyCriteria.BETWEEN ]             = function ( objectValue, conditionValue ) {
         return objectValue > conditionValue[ 0 ] && objectValue < conditionValue[ 1 ];
     };
-    FancyCriteria.conditions[ FancyCriteria.NOT ]        = function ( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.NOT ]                 = function ( objectValue, conditionValue ) {
         return objectValue !== conditionValue;
     };
 
