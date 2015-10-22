@@ -1,11 +1,15 @@
-(function() {
+(function () {
+    var NAME    = "FancyCriteria",
+        VERSION = "0.0.1",
+        logged  = false;
 
     function forEach( arr, fn ) {
-        for( var i in arr ) {
-            if( arr.hasOwnProperty( i ) ) {
+        for ( var i in arr ) {
+            if ( arr.hasOwnProperty( i ) ) {
                 var result = fn.call( arr[ i ], i );
-                if( result !== undefined )
+                if ( result !== undefined ) {
                     return result;
+                }
             }
         }
         return null;
@@ -18,7 +22,7 @@
     function condition( it ) {
         var field = getObject( it, this.key );
         var cond  = FancyCriteria.conditions[ this.type ];
-        if( cond && typeof cond === "function" ) {
+        if ( cond && typeof cond === "function" ) {
             return cond( field, this.value );
         }
         return false;
@@ -29,9 +33,14 @@
 
     function FancyCriteria( array ) {
 
-        if( this === Fancy )
+        if ( this === Fancy ) {
             return new FancyCriteria( array );
+        }
 
+        if ( !logged ) {
+            logged = true;
+            Fancy.version( this );
+        }
 
         var SELF = this;
 
@@ -46,9 +55,9 @@
             };
 
             function getValue( value ) {
-                if( value.indexOf( "and" ) > 0 ) {
+                if ( value.indexOf( "and" ) > 0 ) {
                     var list = [];
-                    value.split( " and " ).forEach( function( it ) {
+                    value.split( " and " ).forEach( function ( it ) {
                         list.push( JSON.parse( it ) );
                     } );
                     return list;
@@ -58,8 +67,8 @@
 
             }
 
-            for( var i in FancyCriteria ) {
-                if( i.toUpperCase() === i ) {
+            for ( var i in FancyCriteria ) {
+                if ( i.toUpperCase() === i ) {
                     var regexOr  = new RegExp( "OR \\w* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
                         regexAnd = new RegExp( "AND \\w* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
                         matchOr  = q.match( regexOr ),
@@ -70,16 +79,16 @@
                     console.log( matchOr );
                     console.log( regexAnd );
                     console.log( matchAnd );
-                    if( matchOr ) {
-                        matchOr.forEach( function( it ) {
+                    if ( matchOr ) {
+                        matchOr.forEach( function ( it ) {
                             var key   = it.match( /OR (\w*) / ),
                                 value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
-                            if( key && value ) {
+                            if ( key && value ) {
                                 key   = key[ 1 ];
                                 value = getValue( value[ 1 ] );
-                                if( Fancy.getType( value ) === "array" ) {
+                                if ( Fancy.getType( value ) === "array" ) {
                                     var args = [ FancyCriteria[ i ], key ];
-                                    value.forEach( function( arg ) {
+                                    value.forEach( function ( arg ) {
                                         args.push( arg );
                                     } );
                                     SELF.or.apply( SELF, args );
@@ -89,16 +98,16 @@
                             }
                         } )
                     }
-                    if( matchAnd ) {
-                        matchAnd.forEach( function( it ) {
+                    if ( matchAnd ) {
+                        matchAnd.forEach( function ( it ) {
                             var key   = it.match( /AND (\w*) / ),
                                 value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
-                            if( key && value ) {
+                            if ( key && value ) {
                                 key   = key[ 1 ];
                                 value = getValue( value[ 1 ] );
-                                if( Fancy.getType( value ) === "array" ) {
+                                if ( Fancy.getType( value ) === "array" ) {
                                     var args = [ FancyCriteria[ i ], key ];
-                                    value.forEach( function( arg ) {
+                                    value.forEach( function ( arg ) {
                                         args.push( arg );
                                     } );
                                     SELF.and.apply( SELF, args );
@@ -116,19 +125,19 @@
                 regexOffset = new RegExp( "OFFSET (\\d*)(?=(?!" + operators + ").)*" ),
                 matchMax    = q.match( regexMax ),
                 matchOffset = q.match( regexOffset );
-            if( matchMax ) {
-                matchMax.forEach( function( it ) {
+            if ( matchMax ) {
+                matchMax.forEach( function ( it ) {
                     var value = it.trim().match( /MAX (\w*)/ );
-                    if( value ) {
+                    if ( value ) {
                         value = JSON.parse( value[ 1 ] );
                         SELF.max( value );
                     }
                 } )
             }
-            if( matchOffset ) {
-                matchOffset.forEach( function( it ) {
+            if ( matchOffset ) {
+                matchOffset.forEach( function ( it ) {
                     var value = it.trim().match( /OFFSET (\w*)/ );
-                    if( value ) {
+                    if ( value ) {
                         value = JSON.parse( value[ 1 ] );
                         SELF.offset( value );
                     }
@@ -137,23 +146,25 @@
         }
 
         function addQuery( F, key, type, value ) {
-            if( query )
+            if ( query ) {
                 query += " ";
+            }
 
             var args = [ F, key ];
-            if( type )
+            if ( type ) {
                 args.push( type );
-            if( value ) {
+            }
+            if ( value ) {
                 args.push( Fancy.getType( value ) === "array" ? value.join( " and " ) : value );
             }
             query += args.join( " " );
         }
 
         Object.defineProperty( this, "query", {
-            get: function() {
+            get: function () {
                 return query;
             },
-            set: function( value ) {
+            set: function ( value ) {
                 query = value;
                 setQuery();
             }
@@ -176,11 +187,11 @@
          * @param value The value(s) which will be injected to the comparation-function
          * @returns {FancyCriteria}
          */
-        this.or = function( type, key, value ) {
-            if( arguments.length > 3 ) {
+        this.or = function ( type, key, value ) {
+            if ( arguments.length > 3 ) {
                 value = [ value ];
-                for( var i in arguments ) {
-                    if( arguments.hasOwnProperty( i ) && parseInt( i ) > 2 ) {
+                for ( var i in arguments ) {
+                    if ( arguments.hasOwnProperty( i ) && parseInt( i ) > 2 ) {
                         value.push( arguments[ i ] );
                     }
                 }
@@ -197,11 +208,11 @@
          * @param value The value(s) which will be injected to the comparation-function
          * @returns {FancyCriteria}
          */
-        this.and = function( type, key, value ) {
-            if( arguments.length > 3 ) {
+        this.and = function ( type, key, value ) {
+            if ( arguments.length > 3 ) {
                 value = [ value ];
-                for( var i in arguments ) {
-                    if( arguments.hasOwnProperty( i ) && parseInt( i ) > 2 ) {
+                for ( var i in arguments ) {
+                    if ( arguments.hasOwnProperty( i ) && parseInt( i ) > 2 ) {
                         value.push( arguments[ i ] );
                     }
                 }
@@ -211,14 +222,14 @@
             return this;
         };
 
-        if( Fancy.getType( array ) === "array" ) {
-            this.offset = function( value ) {
+        if ( Fancy.getType( array ) === "array" ) {
+            this.offset = function ( value ) {
                 this.q.offset = value;
                 addQuery( "OFFSET", value );
                 return this;
             };
 
-            this.max = function( value ) {
+            this.max = function ( value ) {
                 this.q.max = value;
                 addQuery( "MAX", value );
                 return this;
@@ -231,31 +242,32 @@
          * @param index [Boolean] decides if result should contain real indexes
          * @returns {Array}
          */
-        this.list = function( index ) {
+        this.list = function ( index ) {
             var list = [],
                 SELF = this;
-            array.forEach( function( it, i ) {
+            array.forEach( function ( it, i ) {
                 var AND = true,
                     OR  = SELF.q.or.length == 0;
-                forEach( SELF.q.and, function() {
+                forEach( SELF.q.and, function () {
                     var bool = condition.call( this, it );
-                    if( !bool ) {
+                    if ( !bool ) {
                         AND = false;
                         return false;
                     }
                 } );
-                forEach( SELF.q.or, function() {
+                forEach( SELF.q.or, function () {
                     var bool = condition.call( this, it );
-                    if( bool ) {
+                    if ( bool ) {
                         OR = true;
                         return false;
                     }
                 } );
-                if( OR && AND ) {
-                    if( index )
+                if ( OR && AND ) {
+                    if ( index ) {
                         list[ i ] = it;
-                    else
+                    } else {
                         list.push( it );
+                    }
                 }
             } );
             return list;
@@ -265,27 +277,27 @@
          * @param index [Boolean] decides if result should contain index or not
          * @returns {*}
          */
-        this.get  = function( index ) {
-            return forEach( array, function( i ) {
+        this.get  = function ( index ) {
+            return forEach( array, function ( i ) {
                 var it  = this,
                     AND = true,
                     OR  = it.q.or.length == 0;
-                forEach( it.q.and, function() {
+                forEach( it.q.and, function () {
                     var bool = condition.call( this, it );
-                    if( !bool ) {
+                    if ( !bool ) {
                         AND = false;
                         return false;
                     }
                 } );
-                forEach( it.q.or, function() {
+                forEach( it.q.or, function () {
                     var bool = condition.call( this, it );
-                    if( bool ) {
+                    if ( bool ) {
                         OR = true;
                         return false;
                     }
                 } );
 
-                if( OR && AND ) {
+                if ( OR && AND ) {
                     return index ? { index: i.match( /^\d*$/ ) ? parseInt( i ) : i, result: it } : it;
                 }
             } );
@@ -293,6 +305,10 @@
 
         return this;
     }
+
+    FancyCriteria.api = FancyCriteria.prototype = {};
+    FancyCriteria.api.version = VERSION;
+    FancyCriteria.api.name    = NAME;
 
 
     FancyCriteria.LIKE         = "like";
@@ -304,40 +320,28 @@
 
     FancyCriteria.conditions = {};
 
-    FancyCriteria.conditions[ FancyCriteria.LIKE ]       = function( objectValue, conditionValue ) {
-        if( typeof objectValue !== "null" && typeof objectValue !== "undefined" ) {
+    FancyCriteria.conditions[ FancyCriteria.LIKE ]       = function ( objectValue, conditionValue ) {
+        if ( typeof objectValue !== "null" && typeof objectValue !== "undefined" ) {
             return objectValue.toString().indexOf( conditionValue ) >= 0;
         } else {
             return false;
         }
     };
-    FancyCriteria.conditions[ FancyCriteria.EQUALS ]     = function( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.EQUALS ]     = function ( objectValue, conditionValue ) {
         return objectValue === conditionValue;
     };
-    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN ] = function( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN ] = function ( objectValue, conditionValue ) {
         return objectValue < conditionValue;
     };
-    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN ] = function( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.LOWER_THAN ] = function ( objectValue, conditionValue ) {
         return objectValue > conditionValue;
     };
-    FancyCriteria.conditions[ FancyCriteria.BETWEEN ]    = function( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.BETWEEN ]    = function ( objectValue, conditionValue ) {
         return objectValue > conditionValue[ 0 ] && objectValue < conditionValue[ 1 ];
     };
-    FancyCriteria.conditions[ FancyCriteria.NOT ]        = function( objectValue, conditionValue ) {
+    FancyCriteria.conditions[ FancyCriteria.NOT ]        = function ( objectValue, conditionValue ) {
         return objectValue !== conditionValue;
     };
-    /*Fancy.criteria                                       = function( array ) {
-     return new FancyCriteria( array );
-     };*/
+
     Fancy.criteria = FancyCriteria;
 })();
-
-var object1  = { id: 1, class: "Object", hash: "o1" };
-var object2  = { id: 2, class: "Object", hash: "o2" };
-var object3  = { id: 3, class: "Object", hash: "o3" };
-var object4  = { id: 4, class: "Object", hash: "o4" };
-var object5  = { id: 5, class: "Object", hash: "o5" };
-var array    = [ object1, object2, object3, object4, object5 ];
-var criteria = Fancy.criteria( array ).or( Fancy.criteria.EQUALS, "id", 1 ).or( Fancy.criteria.EQUALS, "id", 2 ),
-    c2       = Fancy.criteria( array );
-console.log( criteria, criteria.list(), c2 );

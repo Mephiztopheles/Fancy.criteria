@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-    <script src="../bower_components/jquery/dist/jquery.js"></script>
-    <script src="../bower_components/fancy/fancy.min.js"></script>
-    <script src="../fancycriteria.js"></script>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <script src="../bower_components/jquery/dist/jquery.js"></script>
+        <script src="../bower_components/fancy/fancy.min.js"></script>
+        <script src="../fancycriteria.js"></script>
+    </head>
+    <body>
+        <script>
+            var object1 = { id: 1, class: "Object", hash: "o1" };
+            var object2 = { id: 2, class: "Object", hash: "o2" };
+            var object3 = { id: 3, class: "Object", hash: "o3" };
+            var object4 = { id: 4, class: "Object", hash: "o4" };
+            var object5 = { id: 5, class: "Object", hash: "o5" };
+            var array = [ object1, object2, object3, object4, object5 ];
+            var criteria = Fancy.criteria( array ).or( Fancy.criteria.EQUALS, "id", 1 ).or( Fancy.criteria.EQUALS, "id", 2 ),
+                    c2 = Fancy.criteria( array );
+            console.log( criteria, criteria.list(), c2 );
+        </script>
 
-</body>
+    </body>
 </html>
