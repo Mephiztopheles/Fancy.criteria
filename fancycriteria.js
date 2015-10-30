@@ -1,6 +1,6 @@
 (function () {
     var NAME    = "FancyCriteria",
-        VERSION = "0.0.2",
+        VERSION = "0.0.3",
         logged  = false;
 
     function forEach( arr, fn ) {
@@ -28,11 +28,13 @@
         return false;
     }
 
-    var operators = "OR|MAX|OFFSET|AND";
+    var operators = "OR|MAX|OFFSET|AND|SORT";
 
 
     function FancyCriteria( array ) {
-
+        if ( Fancy.getType( array ) !== "array" ) {
+            throw "Error: It doesn't make sense to search in " + Fancy.getType( array ) + "s";
+        }
         if ( this === Fancy ) {
             return new FancyCriteria( array );
         }
@@ -42,17 +44,41 @@
             Fancy.version( this );
         }
 
-        var SELF = this;
+        var SELF = this,
+            query;
 
-        function setQuery() {
-            var q  = query;
-            query  = "";
+        function sort( arr ) {
+            return arr.sort( function ( a, b ) {
+                var propertyA = Fancy.getKey( a, SELF.q.sort.split( "," )[ 0 ] ),
+                    propertyB = Fancy.getKey( b, SELF.q.sort.split( "," )[ 0 ] ),
+                    direction = SELF.q.sort.split( "," )[ 1 ];
+                return direction === "desc" ? propertyA < propertyB : propertyA > propertyB;
+            } );
+        }
+
+        function resetQuery() {
+            /**
+             * string formatted query
+             * @type {string}
+             */
+            query = "";
+
+            /**
+             * query as object
+             * @type {{and: Array, or: Array, max: null, offset: null, sort: null}}
+             */
             SELF.q = {
                 and   : [],
                 or    : [],
                 max   : null,
-                offset: null
+                offset: null,
+                sort  : null
             };
+        }
+
+        function setQuery() {
+            var q = query;
+            resetQuery();
 
             function getValue( value ) {
                 if ( value.indexOf( "and" ) > 0 ) {
@@ -74,11 +100,11 @@
                         matchOr  = q.match( regexOr ),
                         matchAnd = q.match( regexAnd );
 
-                    console.group( i );
-                    console.log( regexOr );
-                    console.log( matchOr );
-                    console.log( regexAnd );
-                    console.log( matchAnd );
+                    //console.group( i );
+                    //console.log( regexOr );
+                    //console.log( matchOr );
+                    //console.log( regexAnd );
+                    //console.log( matchAnd );
                     if ( matchOr ) {
                         matchOr.forEach( function ( it ) {
                             var key   = it.match( /OR (\w*) / ),
@@ -117,14 +143,15 @@
                             }
                         } )
                     }
-                    console.groupEnd();
+                    //console.groupEnd();
                 }
             }
-            var
-                regexMax    = new RegExp( "MAX (\\d*)(?=(?!" + operators + ").)*" ),
+            var regexMax    = new RegExp( "MAX (\\d*)(?=(?!" + operators + ").)*" ),
                 regexOffset = new RegExp( "OFFSET (\\d*)(?=(?!" + operators + ").)*" ),
+                regexSort   = new RegExp( "SORT ([^ ]*)(?=(?!" + operators + ").)*" ),
                 matchMax    = q.match( regexMax ),
-                matchOffset = q.match( regexOffset );
+                matchOffset = q.match( regexOffset ),
+                matchSort   = q.match( regexSort );
             if ( matchMax ) {
                 matchMax.forEach( function ( it ) {
                     var value = it.trim().match( /MAX (\w*)/ );
@@ -140,6 +167,18 @@
                     if ( value ) {
                         value = JSON.parse( value[ 1 ] );
                         SELF.offset( value );
+                    }
+                } )
+            }
+            if ( matchSort ) {
+                console.log( matchSort );
+                matchSort.forEach( function ( it ) {
+                    var value = it.trim().match( /SORT (.*)/ );
+                    console.log( value, it );
+                    if ( value ) {
+                        var property  = value[ 1 ].split( "," )[ 0 ],
+                            direction = value[ 1 ].split( "," )[ 1 ];
+                        SELF.sort( property, direction );
                     }
                 } )
             }
@@ -169,15 +208,7 @@
                 setQuery();
             }
         } );
-
-        var query = "";
-
-        this.q = {
-            and   : [],
-            or    : [],
-            max   : null,
-            offset: null
-        };
+        resetQuery();
 
         /**
          * will add an 'or'-condition to the actual search
@@ -222,20 +253,38 @@
             return this;
         };
 
-        if ( Fancy.getType( array ) === "array" ) {
-            this.offset = function ( value ) {
-                this.q.offset = value;
-                addQuery( "OFFSET", value );
-                return this;
-            };
+        /**
+         * will set the offset to start with
+         * @param value
+         * @returns {FancyCriteria}
+         */
+        this.offset = function ( value ) {
+            this.q.offset = value;
+            addQuery( "OFFSET", value );
+            return this;
+        };
 
-            this.max = function ( value ) {
-                this.q.max = value;
-                addQuery( "MAX", value );
-                return this;
-            };
-        }
+        /**
+         * will set the max value to countr results
+         * @param value
+         * @returns {FancyCriteria}
+         */
+        this.max = function ( value ) {
+            this.q.max = value;
+            addQuery( "MAX", value );
+            return this;
+        };
 
+        /**
+         * will sort the result
+         * @param property REQUIRED
+         * @param direction REQUIRED
+         */
+        this.sort = function ( property, direction ) {
+            this.q.sort = property + "," + direction;
+            addQuery( "SORT", this.q.sort );
+            return this;
+        };
 
         /**
          * starts search and return results as array
@@ -243,9 +292,12 @@
          * @returns {Array}
          */
         this.list = function ( index ) {
-            var list = [],
-                SELF = this;
-            array.forEach( function ( it, i ) {
+            var list        = [],
+                sortedArray = array;
+            if ( SELF.q.sort ) {
+                sortedArray = sort( array );
+            }
+            sortedArray.forEach( function ( it, i ) {
                 var AND = true,
                     OR  = SELF.q.or.length == 0;
                 forEach( SELF.q.and, function () {
@@ -270,6 +322,16 @@
                     }
                 }
             } );
+            if ( SELF.q.offset ) {
+                var i = 0;
+                while ( i < SELF.q.offset ) {
+                    list.shift();
+                    i++;
+                }
+            }
+            if ( SELF.q.max ) {
+                list.splice( SELF.q.max );
+            }
             return list;
         };
         /**
@@ -278,19 +340,27 @@
          * @returns {*}
          */
         this.get  = function ( index ) {
-            return forEach( array, function ( i ) {
+            var sortedArray = array;
+            if ( SELF.q.sort ) {
+                sortedArray = sort( array );
+            }
+
+            return forEach( sortedArray, function ( i ) {
+                if ( SELF.q.offset && SELF.q.offset > i ) {
+                    return;
+                }
                 var it  = this,
                     AND = true,
-                    OR  = it.q.or.length == 0;
-                forEach( it.q.and, function () {
-                    var bool = condition.call( this, it );
+                    OR  = SELF.q.or.length == 0;
+                forEach( SELF.q.and, function () {
+                    var bool = condition.call( SELF, it );
                     if ( !bool ) {
                         AND = false;
                         return false;
                     }
                 } );
-                forEach( it.q.or, function () {
-                    var bool = condition.call( this, it );
+                forEach( SELF.q.or, function () {
+                    var bool = condition.call( SELF, it );
                     if ( bool ) {
                         OR = true;
                         return false;
