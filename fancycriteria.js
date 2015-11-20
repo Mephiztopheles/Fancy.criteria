@@ -4,8 +4,9 @@
         for( var i in arr ) {
             if( arr.hasOwnProperty( i ) ) {
                 var result = fn.call( arr[ i ], i );
-                if( result !== undefined )
+                if( result !== undefined ) {
                     return result;
+                }
             }
         }
         return null;
@@ -29,8 +30,9 @@
 
     function FancyCriteria( array ) {
 
-        if( this === Fancy )
+        if( this === Fancy ) {
             return new FancyCriteria( array );
+        }
 
 
         var SELF = this;
@@ -65,11 +67,6 @@
                         matchOr  = q.match( regexOr ),
                         matchAnd = q.match( regexAnd );
 
-                    console.group( i );
-                    console.log( regexOr );
-                    console.log( matchOr );
-                    console.log( regexAnd );
-                    console.log( matchAnd );
                     if( matchOr ) {
                         matchOr.forEach( function( it ) {
                             var key   = it.match( /OR (\w*) / ),
@@ -108,7 +105,6 @@
                             }
                         } )
                     }
-                    console.groupEnd();
                 }
             }
             var
@@ -136,13 +132,22 @@
             }
         }
 
-        function addQuery( F, key, type, value ) {
-            if( query )
+        /**
+         * will add query as readable string and as iterateable object
+         * @param operator OR or AND
+         * @param key name of the field in the array e.g. id
+         * @param type e.g. eq, like, not
+         * @param value
+         */
+        function addQuery( operator, key, type, value ) {
+            if( query ) {
                 query += " ";
+            }
 
-            var args = [ F, key ];
-            if( type )
+            var args = [ operator, key ];
+            if( type ) {
                 args.push( type );
+            }
             if( value ) {
                 args.push( Fancy.getType( value ) === "array" ? value.join( " and " ) : value );
             }
@@ -252,10 +257,11 @@
                     }
                 } );
                 if( OR && AND ) {
-                    if( index )
+                    if( index ) {
                         list[ i ] = it;
-                    else
+                    } else {
                         list.push( it );
+                    }
                 }
             } );
             return list;
@@ -265,7 +271,7 @@
          * @param index [Boolean] decides if result should contain index or not
          * @returns {*}
          */
-        this.get  = function( index ) {
+        this.get = function( index ) {
             return forEach( array, function( i ) {
                 var it  = this,
                     AND = true,
@@ -289,6 +295,16 @@
                     return index ? { index: i.match( /^\d*$/ ) ? parseInt( i ) : i, result: it } : it;
                 }
             } );
+        };
+
+        /**
+         * copy the criteria to append other options for another query
+         * @returns {FancyCriteria}
+         */
+        this.copy = function() {
+            var criteria   = new FancyCriteria( array );
+            criteria.query = query;
+            return criteria;
         };
 
         return this;
@@ -326,10 +342,7 @@
     FancyCriteria.conditions[ FancyCriteria.NOT ]        = function( objectValue, conditionValue ) {
         return objectValue !== conditionValue;
     };
-    /*Fancy.criteria                                       = function( array ) {
-     return new FancyCriteria( array );
-     };*/
-    Fancy.criteria = FancyCriteria;
+    Fancy.criteria                                       = FancyCriteria;
 })();
 
 var object1  = { id: 1, class: "Object", hash: "o1" };
