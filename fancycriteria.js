@@ -192,7 +192,7 @@
             if( type ) {
                 args.push( type );
             }
-            if( value ) {
+            if( value !== undefined ) {
                 args.push( Fancy.getType( value ) === "array" ? value.join( " and " ) : value );
             }
             query += args.join( " " );
