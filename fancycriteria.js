@@ -138,7 +138,6 @@
                             }
                         } )
                     }
-                    //console.groupEnd();
                 }
             }
             var regexMax    = new RegExp( "MAX (\\d*)(?=(?!" + operators + ").)*" ),
@@ -166,10 +165,8 @@
                 } )
             }
             if( matchSort ) {
-                console.log( matchSort );
                 matchSort.forEach( function( it ) {
                     var value = it.trim().match( /SORT (.*)/ );
-                    console.log( value, it );
                     if( value ) {
                         var property  = value[ 1 ].split( "," )[ 0 ],
                             direction = value[ 1 ].split( "," )[ 1 ];
