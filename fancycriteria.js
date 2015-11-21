@@ -191,7 +191,7 @@
                 query += " ";
             }
 
-            var args = [ F, key ];
+            var args = [ operator, key ];
             if( type ) {
                 args.push( type );
             }
