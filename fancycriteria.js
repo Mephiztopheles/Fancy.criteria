@@ -95,14 +95,14 @@
 
             for( var i in FancyCriteria ) {
                 if( i.toUpperCase() === i ) {
-                    var regexOr  = new RegExp( "OR \\w* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
-                        regexAnd = new RegExp( "AND \\w* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
+                    var regexOr  = new RegExp( "OR \\S* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
+                        regexAnd = new RegExp( "AND \\S* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
                         matchOr  = q.match( regexOr ),
                         matchAnd = q.match( regexAnd );
 
                     if( matchOr ) {
                         matchOr.forEach( function( it ) {
-                            var key   = it.match( /OR (\w*) / ),
+                            var key   = it.match( /OR (\S*) / ),
                                 value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
                             if( key && value ) {
                                 key   = key[ 1 ];
@@ -121,7 +121,7 @@
                     }
                     if( matchAnd ) {
                         matchAnd.forEach( function( it ) {
-                            var key   = it.match( /AND (\w*) / ),
+                            var key   = it.match( /AND (\S*) / ),
                                 value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
                             if( key && value ) {
                                 key   = key[ 1 ];
@@ -143,7 +143,7 @@
             }
             var regexMax    = new RegExp( "MAX (\\d*)(?=(?!" + operators + ").)*" ),
                 regexOffset = new RegExp( "OFFSET (\\d*)(?=(?!" + operators + ").)*" ),
-                regexSort   = new RegExp( "SORT ([^ ]*)(?=(?!" + operators + ").)*" ),
+                regexSort   = new RegExp( "SORT (\\S*)(?=(?!" + operators + ").)*" ),
                 matchMax    = q.match( regexMax ),
                 matchOffset = q.match( regexOffset ),
                 matchSort   = q.match( regexSort );
