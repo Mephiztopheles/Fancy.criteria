@@ -202,7 +202,16 @@
                 args.push( type );
             }
             if ( value !== undefined ) {
-                args.push( Fancy.getType( value ) === "array" ? value.join( " and " ) : value );
+                if ( Fancy.getType( value ) === "array" ) {
+                    value.forEach( function ( it, i ) {
+                        if ( i ) {
+                            args.push( "and" );
+                        }
+                        args.push( JSON.stringify( it ) );
+                    } );
+                } else {
+                    args.push( JSON.stringify( value ) );
+                }
             }
             query += args.join( " " );
         }
@@ -235,7 +244,7 @@
                     }
                 }
             }
-            addQuery( "OR", key, type, Fancy.getType( value ) === "array" ? value.join( " and " ) : value );
+            addQuery( "OR", key, type, value );
             this.q.or.push( { type: type, key: key, value: value } );
             return this;
         };
@@ -256,7 +265,7 @@
                     }
                 }
             }
-            addQuery( "AND", key, type, Fancy.getType( value ) === "array" ? value.join( " and " ) : value );
+            addQuery( "AND", key, type, value );
             this.q.and.push( { type: type, key: key, value: value } );
             return this;
         };
