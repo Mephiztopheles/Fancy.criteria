@@ -3,7 +3,7 @@ module.exports = function ( grunt ) {
     grunt.initConfig( {
         uglify: {
             options: {
-                mangle   : true,
+                mangle   : false,
                 sourceMap: true
             },
             dev    : {

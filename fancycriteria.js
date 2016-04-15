@@ -1,6 +1,6 @@
 (function () {
     var NAME    = "FancyCriteria",
-        VERSION = "0.0.4",
+        VERSION = "0.0.5",
         logged  = false;
 
     function forEach( arr, fn ) {
@@ -31,6 +31,12 @@
     var operators = "OR|MAX|OFFSET|AND|SORT";
 
 
+    /**
+     * @alias Fancy.criteria
+     * @param array
+     * @returns {Fancy.FancyCriteria}
+     * @constructor
+     */
     function FancyCriteria( array ) {
         if ( Fancy.getType( array ) !== "array" ) {
             throw "Error: It doesn't make sense to search in " + Fancy.getType( array ) + "s";
@@ -103,61 +109,63 @@
             }
 
             for ( var i in FancyCriteria ) {
-                if ( i.toUpperCase() === i ) {
-                    var regexOr  = new RegExp( "OR \\S* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
-                        regexAnd = new RegExp( "AND \\S* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
-                        matchOr  = q.match( regexOr ),
-                        matchAnd = q.match( regexAnd );
+                if ( FancyCriteria.hasOwnProperty( i ) ) {
+                    if ( i.toUpperCase() === i ) {
+                        var regexOr  = new RegExp( "OR \\S* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
+                            regexAnd = new RegExp( "AND \\S* " + FancyCriteria[ i ] + " ((?!" + operators + ").)*", "g" ),
+                            matchOr  = q.match( regexOr ),
+                            matchAnd = q.match( regexAnd );
 
-                    if ( matchOr ) {
-                        matchOr.forEach( function ( it ) {
-                            var key   = it.match( /OR (\S*) / ),
-                                value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
-                            if ( key && value ) {
-                                key   = key[ 1 ];
-                                value = getValue( value[ 1 ] );
-                                if ( Fancy.getType( value ) === "array" ) {
-                                    var args = [ FancyCriteria[ i ], key ];
-                                    value.forEach( function ( arg ) {
-                                        args.push( arg );
-                                    } );
-                                    SELF.or.apply( SELF, args );
-                                } else {
-                                    SELF.or( FancyCriteria[ i ], key, value );
+                        if ( matchOr ) {
+                            matchOr.forEach( function ( it ) {
+                                var key   = it.match( /OR (\S*) / ),
+                                    value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
+                                if ( key && value ) {
+                                    key   = key[ 1 ];
+                                    value = getValue( value[ 1 ] );
+                                    if ( Fancy.getType( value ) === "array" ) {
+                                        var args = [ FancyCriteria[ i ], key ];
+                                        value.forEach( function ( arg ) {
+                                            args.push( arg );
+                                        } );
+                                        SELF.or.apply( SELF, args );
+                                    } else {
+                                        SELF.or( FancyCriteria[ i ], key, value );
+                                    }
                                 }
-                            }
-                        } )
-                    }
-                    if ( matchAnd ) {
-                        matchAnd.forEach( function ( it ) {
-                            var key   = it.match( /AND (\S*) / ),
-                                value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
-                            if ( key && value ) {
-                                key   = key[ 1 ];
-                                value = getValue( value[ 1 ] );
-                                if ( Fancy.getType( value ) === "array" ) {
-                                    var args = [ FancyCriteria[ i ], key ];
-                                    value.forEach( function ( arg ) {
-                                        args.push( arg );
-                                    } );
-                                    SELF.and.apply( SELF, args );
-                                } else {
-                                    SELF.and( FancyCriteria[ i ], key, value );
+                            } )
+                        }
+                        if ( matchAnd ) {
+                            matchAnd.forEach( function ( it ) {
+                                var key   = it.match( /AND (\S*) / ),
+                                    value = it.trim().match( new RegExp( FancyCriteria[ i ] + " (.*)$" ) );
+                                if ( key && value ) {
+                                    key   = key[ 1 ];
+                                    value = getValue( value[ 1 ] );
+                                    if ( Fancy.getType( value ) === "array" ) {
+                                        var args = [ FancyCriteria[ i ], key ];
+                                        value.forEach( function ( arg ) {
+                                            args.push( arg );
+                                        } );
+                                        SELF.and.apply( SELF, args );
+                                    } else {
+                                        SELF.and( FancyCriteria[ i ], key, value );
+                                    }
                                 }
-                            }
-                        } )
+                            } )
+                        }
                     }
                 }
             }
-            var regexMax    = new RegExp( "MAX (\\d*)(?=(?!" + operators + ").)*" ),
-                regexOffset = new RegExp( "OFFSET (\\d*)(?=(?!" + operators + ").)*" ),
-                regexSort   = new RegExp( "SORT (\\S*)(?=(?!" + operators + ").)*" ),
+            var regexMax    = new RegExp( "MAX (null|\\d*)(?=(?!" + operators + ").)*" ),
+                regexOffset = new RegExp( "OFFSET (null|\\d*)(?=(?!" + operators + ").)*" ),
+                regexSort   = new RegExp( "SORT (null|\\S*)(?=(?!" + operators + ").)*" ),
                 matchMax    = q.match( regexMax ),
                 matchOffset = q.match( regexOffset ),
                 matchSort   = q.match( regexSort );
             if ( matchMax ) {
                 matchMax.forEach( function ( it ) {
-                    var value = it.trim().match( /MAX (\w*)/ );
+                    var value = it.trim().match( /MAX (.*)/ );
                     if ( value ) {
                         value = JSON.parse( value[ 1 ] );
                         SELF.max( value );
@@ -166,7 +174,7 @@
             }
             if ( matchOffset ) {
                 matchOffset.forEach( function ( it ) {
-                    var value = it.trim().match( /OFFSET (\w*)/ );
+                    var value = it.trim().match( /OFFSET (.*)/ );
                     if ( value ) {
                         value = JSON.parse( value[ 1 ] );
                         SELF.offset( value );
@@ -188,9 +196,9 @@
         /**
          * will add query as readable string and as iterateable object
          * @param {String} operator OR or AND
-         * @param {String} key name of the field in the array e.g. id
-         * @param {String} type e.g. eq, like, not
-         * @param {*} value
+         * @param {String|Number} key name of the field in the array e.g. id
+         * @param {String} [type] e.g. eq, like, not
+         * @param {*} [value]
          */
         function addQuery( operator, key, type, value ) {
             if ( query ) {
@@ -421,7 +429,7 @@
     FancyCriteria.conditions = {};
 
     FancyCriteria.conditions[ FancyCriteria.LIKE ]                = function ( objectValue, conditionValue ) {
-        if ( typeof objectValue !== "null" && typeof objectValue !== "undefined" ) {
+        if ( objectValue !== null && typeof objectValue !== "undefined" ) {
             return objectValue.toString().indexOf( conditionValue ) >= 0;
         } else {
             return false;

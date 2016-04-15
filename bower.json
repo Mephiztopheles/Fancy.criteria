@@ -3,7 +3,7 @@
     "title"        : "FancyCriteria",
     "description"  : "JavaScript Search-plugin for Fancy",
     "version"      : "0.0.3",
-    "main"         : "fancycriteria.min.js",
+    "main"         : "fancycriteria.js",
     "homepage"     : "http://mephiztopheles.wtf/fancy-criteria",
     "author"       : "Markus Ahrweiler",
     "repository"   : {
