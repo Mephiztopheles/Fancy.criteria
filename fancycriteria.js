@@ -1,6 +1,6 @@
 (function () {
     var NAME    = "FancyCriteria",
-        VERSION = "0.0.5",
+        VERSION = "1.0.0",
         logged  = false;
 
     function forEach( arr, fn ) {
@@ -55,10 +55,18 @@
 
         function sort( arr ) {
             return arr.sort( function ( a, b ) {
+
                 var propertyA = Fancy.getKey( a, SELF.q.sort.split( "," )[ 0 ] ),
                     propertyB = Fancy.getKey( b, SELF.q.sort.split( "," )[ 0 ] ),
                     direction = SELF.q.sort.split( "," )[ 1 ];
-                return direction === "desc" ? propertyA < propertyB : propertyA > propertyB;
+                var sort      = 0;
+                if ( propertyA < propertyB ) {
+                    sort = -1;
+                }
+                if ( propertyA > propertyB ) {
+                    sort = 1;
+                }
+                return sort ? (direction !== "asc" ? sort * -1 : sort) : 0;
             } );
         }
 
