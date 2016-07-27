@@ -1,6 +1,6 @@
 (function () {
     var NAME    = "FancyCriteria",
-        VERSION = "1.0.0",
+        VERSION = "1.1.0",
         logged  = false;
 
     function forEach( arr, fn ) {
@@ -38,7 +38,7 @@
      * @constructor
      */
     function FancyCriteria( array ) {
-        if ( Fancy.getType( array ) !== "array" ) {
+        if ( Fancy.getType( array ) !== "array" && (array.constructor ? Object.getPrototypeOf( array.constructor ) !== Array : true) ) {
             throw "Error: It doesn't make sense to search in " + Fancy.getType( array ) + "s";
         }
         if ( this === Fancy ) {
@@ -408,7 +408,7 @@
 
         /**
          * copy the criteria to append other options for another query
-         * @returns {FancyCriteria}
+         * @returns {Fancy.FancyCriteria}
          */
         this.copy = function () {
             var criteria   = new FancyCriteria( array );
@@ -438,7 +438,7 @@
 
     FancyCriteria.conditions[ FancyCriteria.LIKE ]                = function ( objectValue, conditionValue ) {
         if ( objectValue !== null && typeof objectValue !== "undefined" ) {
-            return objectValue.toString().indexOf( conditionValue ) >= 0;
+            return objectValue.toString().toLowerCase().indexOf( objectValue ? conditionValue.toLowerCase() : objectValue ) >= 0;
         } else {
             return false;
         }
